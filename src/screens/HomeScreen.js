@@ -21,6 +21,7 @@ import ForecastList from '../components/ForecastList';
 import colors from '../constants/colors';
 import LinearGradient from 'react-native-linear-gradient';
 import WeatherBackground from '../components/WeatherBackground'; // Now handles dynamic effects with Animated API
+import AnimatedWeatherIcon from '../components/AnimatedWeatherIcon';
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -55,10 +56,12 @@ const HomeScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      
+      {/* Animated SVG Weather Icon as Background */}
+      <View style={styles.animatedIconBg} pointerEvents="none">
+        <AnimatedWeatherIcon condition={weatherCondition} size={340} />
+      </View>
       {/* Dynamic Weather Background and Effects */}
       <WeatherBackground condition={weatherCondition} />
-      
       {/* Optional: A subtle gradient overlay for better readability */}
       <LinearGradient
         colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.1)']} // Darker gradient for contrast
@@ -184,6 +187,17 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
 
+  },
+  animatedIconBg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.18, // Subtle effect
+    zIndex: 0,
   },
 });
 

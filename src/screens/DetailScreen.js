@@ -1,27 +1,95 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, ImageBackground, Image } from 'react-native';
-import WeatherIcon from '../components/WeatherIcon';
+import { View, Text, StyleSheet, ScrollView, ImageBackground, Animated, Easing } from 'react-native';
+import AnimatedWeatherIcon from '../components/AnimatedWeatherIcon';
+// Import SVGs for details
+import HighIcon from '../assets/icons/animated/day.svg';
+import LowIcon from '../assets/icons/animated/cloudy-night-1.svg';
+import HumidityIcon from '../assets/icons/animated/rainy-1.svg';
+import PressureIcon from '../assets/icons/animated/weather.svg';
+import WindIcon from '../assets/icons/animated/cloudy.svg';
+import VisibilityIcon from '../assets/icons/animated/cloudy-day-2.svg';
 import moment from 'moment';
 import colors from '../constants/colors';
 import LinearGradient from 'react-native-linear-gradient';
 
-// Using a single placeholder image as the background will be handled by WeatherBackground component
-const defaultBackgroundImage = 'https://images.unsplash.com/photo-1724477437269-9229b5b48dbc?q=80&w=2736&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+// Background images based on temperature ranges
+const backgroundImages = {
+  cold: 'https://images.unsplash.com/photo-1514632542677-48fae74a01b2?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  cool: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  mild: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=2832&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  warm: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2946&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  hot: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?q=80&w=2876&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+};
 
+const getBackgroundImage = (temp) => {
+  if (temp < 0) return backgroundImages.cold;
+  if (temp < 10) return backgroundImages.cool;
+  if (temp < 20) return backgroundImages.mild;
+  if (temp < 40) return backgroundImages.warm;
+  return backgroundImages.hot;
+};
+
+// Colorful icons mapping
+const iconColors = {
+  High: '#FF5252', // Red
+  Low: '#2196F3', // Blue
+  Humidity: '#4CAF50', // Green
+  Pressure: '#9C27B0', // Purple
+  Wind: '#FF9800', // Orange
+  Visibility: '#00BCD4', // Cyan
+};
 
 const DetailScreen = ({ route }) => {
   const { forecastItem } = route.params;
   const weatherCondition = forecastItem.weather[0]?.main;
-  console.log('Forecast Item:', forecastItem);
-  // In a real app, you might fetch a more specific image or use a default one
-  // For this example, we'll just use a default static background for the detail screen
-  const backgroundImage = defaultBackgroundImage;
+  const temperature = forecastItem.main.temp;
+  const backgroundImage = getBackgroundImage(temperature);
+  
+  // Animation values
+  const spinValue = new Animated.Value(0);
+  const pulseValue = new Animated.Value(1);
+  
+  // Spin animation for weather icon
+  Animated.loop(
+    Animated.timing(spinValue, {
+      toValue: 1,
+      duration: 10000,
+      easing: Easing.linear,
+      useNativeDriver: true,
+    })
+  ).start();
+  
+  // Pulse animation for detail icons
+  Animated.loop(
+    Animated.sequence([
+      Animated.timing(pulseValue, {
+        toValue: 1.1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(pulseValue, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+    ])
+  ).start();
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '10deg' ],
+  });
+
+  const pulse = pulseValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.8, 1.2],
+  });
 
   return (
     <ImageBackground 
       source={{ uri: backgroundImage }}
       style={styles.backgroundImage}
-      blurRadius={3} // Slightly increased blur for consistency
+      blurRadius={3}
     >
       <LinearGradient
         colors={['rgba(0,0,0,0.7)', 'rgba(0,0,0,0.4)']}
@@ -30,9 +98,11 @@ const DetailScreen = ({ route }) => {
         <ScrollView contentContainerStyle={styles.container}>
           {/* Header Section */}
           <View style={styles.header}>
-            <WeatherIcon condition={weatherCondition} size={100} />
+            <Animated.View style={{ transform: [{ rotate: spin }] }}>
+              <AnimatedWeatherIcon condition={weatherCondition} size={100} />
+            </Animated.View>
             <Text style={styles.date}>
-              {moment.unix(forecastItem.dt).format('dddd, MMMM Do, YYYY')} {/* Added year for clarity */}
+              {moment.unix(forecastItem.dt).format('dddd, MMMM Do, YYYY')}
             </Text>
             <Text style={styles.condition}>
               {forecastItem.weather[0]?.description}
@@ -50,104 +120,57 @@ const DetailScreen = ({ route }) => {
             
             <View style={styles.detailsGrid}>
               <View style={styles.detailItem}>
-                <Image 
-                  source={{ uri: 'https://cdn-icons-png.flaticon.com/512/8106/8106812.png' }} 
-                  style={styles.detailIcon}
-                  onError={(e) => console.log('Image load error:', e.nativeEvent.error)} // Error handling
-                />
+                <Animated.View style={{ transform: [{ scale: pulse }] }}>
+                  <HighIcon width={40} height={40} />
+                </Animated.View>
                 <Text style={styles.detailLabel}>High</Text>
                 <Text style={styles.detailValue}>
                   {Math.round(forecastItem.main.temp_max)}°C
                 </Text>
               </View>
-              
               <View style={styles.detailItem}>
-                <Image 
-                  source={{ uri: 'https://cdn-icons-png.flaticon.com/512/5118/5118028.png' }} 
-                  style={styles.detailIcon}
-                  onError={(e) => console.log('Image load error:', e.nativeEvent.error)}
-                />
+                <Animated.View style={{ transform: [{ scale: pulse }] }}>
+                  <LowIcon width={40} height={40} />
+                </Animated.View>
                 <Text style={styles.detailLabel}>Low</Text>
                 <Text style={styles.detailValue}>
                   {Math.round(forecastItem.main.temp_min)}°C
                 </Text>
               </View>
-              
               <View style={styles.detailItem}>
-                <Image 
-                  source={{ uri: 'https://cdn-icons-png.flaticon.com/512/9290/9290540.png' }} 
-                  style={styles.detailIcon}
-                  onError={(e) => console.log('Image load error:', e.nativeEvent.error)}
-                />
+                <Animated.View style={{ transform: [{ scale: pulse }] }}>
+                  <HumidityIcon width={40} height={40} />
+                </Animated.View>
                 <Text style={styles.detailLabel}>Humidity</Text>
                 <Text style={styles.detailValue}>
                   {forecastItem.main.humidity}%
                 </Text>
               </View>
-              
               <View style={styles.detailItem}>
-                <Image 
-                  source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2676/2676004.png' }} 
-                  style={styles.detailIcon}
-                  onError={(e) => console.log('Image load error:', e.nativeEvent.error)}
-                />
+                <Animated.View style={{ transform: [{ scale: pulse }] }}>
+                  <PressureIcon width={40} height={40} />
+                </Animated.View>
                 <Text style={styles.detailLabel}>Pressure</Text>
                 <Text style={styles.detailValue}>
                   {forecastItem.main.pressure} hPa
                 </Text>
               </View>
-              
               <View style={styles.detailItem}>
-                <Image 
-                  source={{ uri: 'https://cdn-icons-png.flaticon.com/512/966/966390.png' }} 
-                  style={styles.detailIcon}
-                  onError={(e) => console.log('Image load error:', e.nativeEvent.error)}
-                />
+                <Animated.View style={{ transform: [{ scale: pulse }] }}>
+                  <WindIcon width={40} height={40} />
+                </Animated.View>
                 <Text style={styles.detailLabel}>Wind</Text>
                 <Text style={styles.detailValue}>
-                  {forecastItem.wind?.speed || 'N/A'} m/s {/* Added 'N/A' for undefined */}
+                  {forecastItem.wind?.speed || 'N/A'} m/s
                 </Text>
               </View>
-              
               <View style={styles.detailItem}>
-                <Image 
-                  source={{ uri: 'https://cdn-icons-png.flaticon.com/512/5263/5263154.png' }} 
-                  style={styles.detailIcon}
-                  onError={(e) => console.log('Image load error:', e.nativeEvent.error)}
-                />
+                <Animated.View style={{ transform: [{ scale: pulse }] }}>
+                  <VisibilityIcon width={40} height={40} />
+                </Animated.View>
                 <Text style={styles.detailLabel}>Visibility</Text>
                 <Text style={styles.detailValue}>
-                  {forecastItem.visibility ? `${(forecastItem.visibility / 1000).toFixed(1)} km` : 'N/A'} {/* Added 'N/A' */}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Additional Info Section */}
-          <View style={[styles.card, { marginTop: 20 }]}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Additional Information</Text>
-            </View>
-            
-            <View style={styles.additionalInfo}>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Sunrise</Text>
-                <Text style={styles.infoValue}>
-                  {forecastItem.sys?.sunrise ? moment.unix(forecastItem.sys.sunrise).format('h:mm A') : 'N/A'}
-                </Text>
-              </View>
-              
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Sunset</Text>
-                <Text style={styles.infoValue}>
-                  {forecastItem.sys?.sunset ? moment.unix(forecastItem.sys.sunset).format('h:mm A') : 'N/A'}
-                </Text>
-              </View>
-              
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Feels Like</Text>
-                <Text style={styles.infoValue}>
-                  {forecastItem.main?.feels_like ? `${Math.round(forecastItem.main.feels_like)}°C` : 'N/A'}
+                  {forecastItem.visibility ? `${(forecastItem.visibility / 1000).toFixed(1)} km` : 'N/A'}
                 </Text>
               </View>
             </View>
@@ -158,6 +181,7 @@ const DetailScreen = ({ route }) => {
   );
 };
 
+// Styles remain the same as in your original file
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
@@ -172,7 +196,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
     paddingTop: 20,
   },
   date: {
@@ -197,7 +221,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 15,
     padding: 15,
-    // backdropFilter: 'blur(10px)', // React Native doesn't support backdrop-filter directly on View
+
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },
@@ -226,10 +250,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   detailIcon: {
-    width: 30,
-    height: 30,
+    width: 40,
+    height: 40,
     marginBottom: 8,
-    tintColor: colors.white,
   },
   detailLabel: {
     fontSize: 14,
@@ -240,26 +263,6 @@ const styles = StyleSheet.create({
   detailValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: colors.white,
-  },
-  additionalInfo: {
-    paddingHorizontal: 5,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-  },
-  infoLabel: {
-    fontSize: 16,
-    color: colors.white,
-    opacity: 0.8,
-  },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: '600',
     color: colors.white,
   },
 });

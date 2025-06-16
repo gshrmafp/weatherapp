@@ -27,7 +27,9 @@ export const fetchForecast = async (lat, lon, days = 3) => {
         units: 'metric',
         cnt: days * 8, // 3-hour intervals for 3 days
       },
+      
     });
+    console.log("fetchForecast",response.data);
     return response.data;
   } catch (error) {
     throw error;

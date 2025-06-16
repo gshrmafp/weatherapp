@@ -1,23 +1,24 @@
-import { NavigationContainer } from '@react-navigation/native'; // Add this import
+// navigation/AppNavigator.js
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/HomeScreen';
 import DetailScreen from '../screens/DetailScreen';
-import colors from '../constants/colors';
+import CustomHeader from '../components/CustomHeader';
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   return (
-    <NavigationContainer>  {/* Add this wrapper */}
+    <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
-          headerStyle: {
-            backgroundColor: colors.primary,
-          },
-          headerTintColor: colors.white,
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
+          header: ({ navigation, route, options }) => (
+            <CustomHeader 
+              title={options.title || route.name} 
+              navigation={navigation}
+              showBackButton={navigation.canGoBack()}
+            />
+          ),
         }}
       >
         <Stack.Screen
@@ -31,7 +32,7 @@ const AppNavigator = () => {
           options={{ title: 'Weather Details' }}
         />
       </Stack.Navigator>
-    </NavigationContainer> 
+    </NavigationContainer>
   );
 };
 

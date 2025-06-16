@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import WeatherIcon from './WeatherIcon';
+import AnimatedWeatherIcon from './AnimatedWeatherIcon';
 import colors from '../constants/colors';
 import moment from 'moment';
 
@@ -15,7 +15,7 @@ const DailyForecast = ({ forecast, onPress }) => {
     <TouchableOpacity onPress={onPress} style={styles.touchableContainer}> {/* Added touchable style */}
       <View style={styles.container}>
         <Text style={styles.date}>{date}</Text>
-        <WeatherIcon condition={condition} size={40} />
+        <AnimatedWeatherIcon condition={condition} size={40} />
         <View style={styles.tempContainer}>
           <Text style={styles.tempMax}>{Math.round(main.temp_max)}°</Text>
           <Text style={styles.tempMin}>{Math.round(main.temp_min)}°</Text>

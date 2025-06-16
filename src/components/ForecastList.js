@@ -36,7 +36,7 @@ const ForecastList = ({ forecastData, onForecastPress }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>3-Day Forecast</Text>
+    
       <FlatList
         data={forecastArray.slice(0, 3)} // Displaying only the next 3 days
         keyExtractor={(item) => item.dt.toString()}
@@ -51,18 +51,12 @@ const ForecastList = ({ forecastData, onForecastPress }) => {
 const styles = StyleSheet.create({
   container: {
     margin: 10,
-    backgroundColor: 'rgba(255,255,255,0.2)', // Adjusted for new background
+    // Adjusted for new background
     borderRadius: 10,
     padding: 10,
 
   },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.white, // Adjusted for new background
-    marginBottom: 10,
-    paddingLeft: 10,
-  },
+
 });
 
 export default ForecastList;

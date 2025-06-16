@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import WeatherIcon from './WeatherIcon';
+import AnimatedWeatherIcon from './AnimatedWeatherIcon';
 import colors from '../constants/colors';
 
 const CurrentWeather = ({ weather }) => {
@@ -8,10 +8,13 @@ const CurrentWeather = ({ weather }) => {
 
   const { main, weather: weatherDetails } = weather;
   const condition = weatherDetails[0]?.main;
+  console.log('Current Weather:', weather);
+  console.log('Weather Details:', weatherDetails);
 
   return (
     <View style={styles.container}>
-      <WeatherIcon condition={condition} size={80} />
+      <Text style={styles.temperature}>{weather.name}</Text>
+      <AnimatedWeatherIcon condition={condition} size={80} />
       <Text style={styles.temperature}>{Math.round(main.temp)}°C</Text>
       <Text style={styles.condition}>{weatherDetails[0]?.description}</Text>
       <View style={styles.detailsContainer}>
